@@ -74,6 +74,8 @@ public class DateRangeCalendarView extends LinearLayout {
     private float textSizeTitle, textSizeWeek, textSizeDate;
 
     public interface CalendarListener {
+        void onDateClicked(Calendar date);
+
         void onDateRangeSelected(Calendar startDate, Calendar endDate);
 
         void onCancel();
@@ -246,6 +248,8 @@ public class DateRangeCalendarView extends LinearLayout {
                 maxSelectedDate = null;
                 makeAsSelectedDate(container, 0);
             }
+
+            if (calendarListener != null) calendarListener.onDateClicked(selectedCal);
 
             if (shouldEnabledTime) {
                 AwesomeTimePickerDialog awesomeTimePickerDialog = new AwesomeTimePickerDialog(mContext, mContext.getString(R.string.select_time), new AwesomeTimePickerDialog.TimePickerCallback() {
