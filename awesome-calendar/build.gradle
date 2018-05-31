@@ -16,7 +16,7 @@ ext {
     gitUrl = 'https://github.com/ArchitShah248/CalendarDateRangePicker.git'
     githubRepository= 'ArchitShah248/CalendarDateRangePicker'
 
-    libraryVersion = '1.0.1'
+    libraryVersion = '1.0.2'
 
     developerId = 'architshah248'
     developerName = 'Archit Shah'
