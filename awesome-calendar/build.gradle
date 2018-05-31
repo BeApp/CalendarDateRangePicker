@@ -6,7 +6,8 @@ ext {
 
     publishedGroupId = 'com.archit.calendar'
     libraryName = 'Awesome-Calendar'
-    artifact = 'awesome-calendar'     // Has to be same as your library module name
+    artifact = 'awesome-calendar-beapp'     // Has to be same as your library module name
+    libraryPackaging = 'aar'
 
     libraryDescription = 'Android library to select range of dates.'
 
@@ -57,5 +58,4 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-apply from: 'install.gradle'
-apply from: 'bintray.gradle'
+apply from: project.rootProject.file('deploy.gradle')
