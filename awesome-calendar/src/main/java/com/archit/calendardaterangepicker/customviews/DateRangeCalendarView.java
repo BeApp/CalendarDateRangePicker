@@ -11,6 +11,8 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.support.annotation.ColorInt;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -74,6 +76,8 @@ public class DateRangeCalendarView extends LinearLayout {
     private float textSizeTitle, textSizeWeek, textSizeDate;
 
     public interface CalendarListener {
+        void onDateClicked(Calendar date);
+
         void onDateRangeSelected(Calendar startDate, Calendar endDate);
 
         void onCancel();
@@ -246,6 +250,8 @@ public class DateRangeCalendarView extends LinearLayout {
                 maxSelectedDate = null;
                 makeAsSelectedDate(container, 0);
             }
+
+            if (calendarListener != null) calendarListener.onDateClicked(selectedCal);
 
             if (shouldEnabledTime) {
                 AwesomeTimePickerDialog awesomeTimePickerDialog = new AwesomeTimePickerDialog(mContext, mContext.getString(R.string.select_time), new AwesomeTimePickerDialog.TimePickerCallback() {
@@ -586,6 +592,37 @@ public class DateRangeCalendarView extends LinearLayout {
                 textView.setTypeface(fonts);
 
             }
+        }
+    }
+
+    @Nullable
+    public Calendar getMinSelectedDate() {
+        return minSelectedDate;
+    }
+
+    @Nullable
+    public Calendar getMaxSelectedDate() {
+        return maxSelectedDate;
+    }
+
+    /**
+     * To programmatically set selection
+     *
+     * @param minSelectedDate - First day of selection, no selection if null
+     * @param maxSelectedDate - Last day of selection, only first day selected if null
+     */
+    public void setSelectedDates(@Nullable Calendar minSelectedDate, @Nullable Calendar maxSelectedDate) {
+        this.minSelectedDate = minSelectedDate;
+        if (minSelectedDate != null) {
+            if (maxSelectedDate != null) {
+                this.maxSelectedDate = maxSelectedDate;
+            } else {
+                this.maxSelectedDate = minSelectedDate;
+            }
+            drawSelectedDateRange(this.minSelectedDate, this.maxSelectedDate);
+        } else {
+            this.maxSelectedDate = null;
+            resetAllSelectedViews();
         }
     }
 }
