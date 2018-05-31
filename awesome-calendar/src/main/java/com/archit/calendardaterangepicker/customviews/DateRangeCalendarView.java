@@ -1,5 +1,6 @@
 package com.archit.calendardaterangepicker.customviews;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.archit.calendardaterangepicker.R;
 import com.archit.calendardaterangepicker.models.DayContainer;
@@ -30,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by archit.shah on 08/09/2017.
@@ -135,7 +138,9 @@ public class DateRangeCalendarView extends LinearLayout {
             return;
         }
 
-        drawCalendarForMonth(getCurrentMonth(Calendar.getInstance()));
+        Calendar calendar = Calendar.getInstance(Locale.getDefault());
+        drawCalendarForMonth(getCurrentMonth(calendar));
+        setDaysTitle(calendar);
 
         setWeekTitleColor(weekColor);
     }
@@ -291,14 +296,15 @@ public class DateRangeCalendarView extends LinearLayout {
 
         Log.v("Hello", "Current cal: " + month.getTime().toString());
         currentCalendarMonth = (Calendar) month.clone();
-        int startDay = month.get(Calendar.DAY_OF_WEEK);
+        int startDay = month.get(Calendar.DAY_OF_WEEK) - month.getFirstDayOfWeek();
+        startDay += startDay < 0 ? 7 : 0;
 
         String dateText = new DateFormatSymbols(locale).getMonths()[currentCalendarMonth.get(Calendar.MONTH)];
         dateText = dateText.substring(0, 1).toUpperCase() + dateText.subSequence(1, dateText.length());
         tvYearTitle.setText(dateText + " " + currentCalendarMonth.get(Calendar.YEAR));
         tvYearTitle.setTextColor(titleColor);
 
-        month.add(Calendar.DATE, -startDay + 1);
+        month.add(Calendar.DATE, -startDay);
 
         for (int i = 0; i < llDaysContainer.getChildCount(); i++) {
             LinearLayout weekRow = (LinearLayout) llDaysContainer.getChildAt(i);
@@ -511,6 +517,24 @@ public class DateRangeCalendarView extends LinearLayout {
         }
         selectedDatesRange.add(lastDateKey);
 
+    }
+
+    @SuppressLint("WrongConstant")
+    private void setDaysTitle(Calendar calendar) {
+        Map<String, Integer> daysNames = calendar.getDisplayNames(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault());
+        for (int i = 0; i < llTitleWeekContainer.getChildCount(); i++) {
+            if (llTitleWeekContainer.getChildAt(i) instanceof TextView) {
+                TextView tv = (TextView) llTitleWeekContainer.getChildAt(i);
+                int day = calendar.getFirstDayOfWeek() + i;
+                day -= day > 7 ? 7 : 0;
+                for (Map.Entry<String, Integer> entry : daysNames.entrySet()) {
+                    if (entry.getValue() == day) {
+                        tv.setText(entry.getKey());
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     /**

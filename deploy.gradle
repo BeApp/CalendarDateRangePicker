@@ -1,0 +1,104 @@
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+afterEvaluate { project ->
+    uploadArchives {
+        if (findProperty('beapp_artifactory_user') != null && findProperty('beapp_artifactory_password') != null) {
+            repositories {
+                mavenDeployer {
+                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+                    pom.groupId = publishedGroupId
+                    pom.artifactId = artifact
+                    pom.version = libraryVersion
+
+                    if (findProperty('beapp_repository_release') != null) {
+                        repository(url: "${beapp_repository_release}") {
+                            authentication(userName: "${beapp_artifactory_user}", password: "${beapp_artifactory_password}")
+                        }
+                    }
+                    if (findProperty('beapp_repository_snapshot') != null) {
+                        snapshotRepository(url: "${beapp_repository_snapshot}") {
+                            authentication(userName: "${beapp_artifactory_user}", password: "${beapp_artifactory_password}")
+                        }
+                    }
+
+                    pom.project {
+                        name libraryName
+                        packaging libraryPackaging
+                        description libraryDescription
+                        url siteUrl
+
+                        scm {
+                            url siteUrl
+                            connection "scm:git:${gitUrl}"
+                            developerConnection "scm:git:${gitUrl}"
+                        }
+                        developers {
+                            developer {
+                                id developerId
+                                name developerName
+                                email developerEmail
+                            }
+                        }
+                        licenses {
+                            license {
+                                name licenseName
+                                url licenseUrl
+                                distribution = allLicenses
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    signing {
+        required {
+            !libraryVersion.contains("SNAPSHOT") && gradle.taskGraph.hasTask("uploadArchives")
+        }
+        sign configurations.archives
+    }
+
+
+    if (project.hasProperty("android")) { // Android libraries
+        task sourcesJar(type: Jar) {
+            classifier = 'sources'
+            from android.sourceSets.main.java.srcDirs
+        }
+
+        task javadocs(type: Javadoc) {
+            source = android.sourceSets.main.java.srcDirs
+            classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        }
+    } else { // Java libraries
+        task sourcesJar(type: Jar, dependsOn: classes) {
+            classifier = 'sources'
+            from sourceSets.main.allSource
+        }
+
+        task javadocs(type: Javadoc) {
+            source = sourceSets.main.java.srcDirs
+            classpath = project.sourceSets.main.compileClasspath
+        }
+    }
+
+    task javadocsJar(type: Jar, dependsOn: javadocs) {
+        classifier = 'javadoc'
+        from javadocs.destinationDir
+
+        if (JavaVersion.current().isJava8Compatible()) {
+            allprojects {
+                tasks.withType(Javadoc) {
+                    options.addStringOption('Xdoclint:none', '-quiet')
+                }
+            }
+        }
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocsJar
+    }
+}
